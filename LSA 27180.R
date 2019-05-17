@@ -3,8 +3,9 @@ library(lubridate)
 
 load("data/COHHIOHMIS.RData")
 
-#if you want to change the reporting dates, you have to do it in the 
-#get_the_csv_things script
+ReportStart <- "10012017"
+ReportEnd <- "09302018"
+ReportingPeriod <- interval(mdy(ReportStart), mdy(ReportEnd))
 
 # Creating Beds table -----------------------------------------------------
 

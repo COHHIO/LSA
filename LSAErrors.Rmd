@@ -7,6 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(readxl)
+library(tidyverse)
+library(gt)
 ```
 
 ## Data Quality Flags Summary
@@ -14,9 +17,7 @@ knitr::opts_chunk$set(echo = FALSE)
 Following are all the different kinds of Data Quality Flags:
 
 ```{r}
-library(readxl)
-library(tidyverse)
-library(gt)
+
 flags <- read_xlsx("data/LSA.xlsx", 
                    sheet = 4, 
                    skip = 5,
@@ -61,7 +62,8 @@ ggplot(flagdescriptions %>%
          filter(PossiblyVendorRelated == "No") %>% 
          group_by(Category) %>%
          summarise(Count = n()), aes(Category, Count)) +
-  geom_col() 
+  geom_col() +
+  coord_flip()
 ```
 
 

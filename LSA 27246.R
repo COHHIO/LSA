@@ -14,13 +14,18 @@
 
 library(tidyverse)
 library(lubridate)
+library(HMIS)
+
+ReportStart <- "10012018"
+ReportEnd <- "09302020"
 
 # bed utilization down to the hh type granularity, yay
 
-load("data/COHHIOHMIS.RData")
+Inventory <- read_csv("data/Inventory.csv")
+Enrollment <- read_csv("data/Enrollment.csv")
 
 smallInventory <- Inventory %>%
-  filter(beds_available_between(Inventory, "10012017", "09302018") == TRUE) %>%
+  filter(beds_available_between(., ReportStart, ReportEnd)) %>%
   select(ProjectID, HouseholdType, BedInventory) %>%
   mutate(HouseholdType = case_when(
     HouseholdType == 1 ~ "Individual",
@@ -39,7 +44,7 @@ hhtypes <- spread(x, HouseholdType, BedInventory) %>%
            (HouseholdBeds + IndividualBeds))
 
 smallEnrollment <- Enrollment %>%
-  filter(served_between(Enrollment, "10012017", "09302018") == TRUE) %>%
+  filter(served_between(., ReportStart, ReportEnd)) %>%
   select(ProjectID, HouseholdID) %>%
   mutate(HouseholdType = case_when(
     grepl("s_", HouseholdID) == TRUE ~ "IndividualsServed",
@@ -61,5 +66,4 @@ possibleissues <- z %>%
     Diff = abs(percentHHBeds - percentHouseholds)) %>%
   filter(Diff > .75)
 
-#testing git
 

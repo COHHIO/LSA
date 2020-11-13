@@ -1,69 +1,91 @@
 ---
-title: "LSA Errors"
+title: "LSA Errors & Warnings"
 author: "Genelle Denzin"
 date: "March 21, 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+
 library(readxl)
 library(tidyverse)
 library(gt)
+library(janitor)
+library(plotly)
 ```
 
 ## Data Quality Flags Summary
 
-Following are all the different kinds of Data Quality Flags:
+Both years together, all CoC flags
 
-```{r}
+```{r categories_plot}
 
-flags <- read_xlsx("data/LSA.xlsx", 
-                   sheet = 4, 
-                   skip = 5,
-                   col_types = "text")
-flagvendor <- flags %>%
-  group_by(PossiblyVendorRelated) %>%
-  summarise(Count = n())
-flagdescriptions <- flags %>% 
-  group_by(Category, FlagDescription, PossiblyVendorRelated, Type) %>% 
-  summarise(Count = n()) %>%
+flags_2018 <- read_xlsx(
+  "data/errors_warnings_1_2018.xlsx",
+  sheet = 4,
+  skip = 4,
+  col_types = "text"
+)
+
+flags_2019 <- read_xlsx(
+  "data/errors_warnings_1_2019.xlsx",
+  sheet = 4,
+  skip = 4,
+  col_types = "text"
+)
+
+flags_all <- rbind(flags_2018, flags_2019) %>% 
+  clean_names()
+
+flag_categories <- flags_all %>%
+  group_by(type, category) %>%
+  summarise(NumberErrors = n()) %>%
+  ungroup() %>% 
+  arrange(desc(NumberErrors)) 
+
+plot_ly(
+  flag_categories %>%
+    arrange(desc(NumberErrors)) %>%
+    head(8L),
+  x = ~ reorder(category, desc(NumberErrors)),
+  y = ~ NumberErrors,
+  type = 'bar',
+  color = ~ category
+) %>%
+  layout(
+    title = "LSA Categories",
+    showlegend = FALSE,
+    xaxis =  list(
+      title = ""
+    )
+  )
+```
+
+## Categories Detail
+
+```{r categories_detail}
+gt(flag_categories)
+
+```
+
+## Flag Descriptions
+
+```{r descriptions}
+
+flag_descriptions <- flags_all %>%
+  group_by(id_number, type, category, description_7) %>%
+  summarise(NumberErrors = n()) %>%
   ungroup()
-toptenflagtypes <- flagdescriptions %>% filter(Count > 30) 
-gt(flagdescriptions %>% arrange(desc(flagdescriptions$Count)))
 
-```
+toptenflagtypes <- flag_descriptions %>% arrange(desc(NumberErrors)) %>% head(10L)
 
-## How Much is Possibly Vendor Related
+gt(toptenflagtypes)
 
-```{r}
-ggplot(flagvendor %>% 
-         select(PossiblyVendorRelated, Count),
-       aes(PossiblyVendorRelated, Count)) + 
-  geom_col()
-```
-
-## What Errors are Likely Mine?
-
-```{r}
-itsonme <- flagdescriptions %>% filter(PossiblyVendorRelated == "No")
-gt(itsonme)
-ggplot(flagdescriptions %>% 
-         filter(PossiblyVendorRelated == "No") %>% 
-         group_by(Type) %>%
-         summarise(Count = n()), aes(Type, Count)) +
-  geom_col()
-```
-
-
-
-```{r}
-ggplot(flagdescriptions %>% 
-         filter(PossiblyVendorRelated == "No") %>% 
-         group_by(Category) %>%
-         summarise(Count = n()), aes(Category, Count)) +
-  geom_col() +
-  coord_flip()
 ```
 
 

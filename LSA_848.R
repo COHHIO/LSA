@@ -46,4 +46,4 @@ flag848 <- flags_all %>%
   mutate(value_16 = as.numeric(value_16)) %>%
   select("ProjectID" = value_14, "ProjectName" = value_18, "Enrollments" = value_16)
 
-write_csv(flag848, "missingCoClocation.csv")
+write_csv(flag848, "outputs/missingCoClocation.csv")

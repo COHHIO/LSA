@@ -40,7 +40,8 @@ flags_2019 <- read_xlsx(
 )
 
 flags_all <- rbind(flags_2018, flags_2019) %>% 
-  clean_names()
+  clean_names() %>% unique() %>%
+  filter(!is.na(id_number))
 
 flag_categories <- flags_all %>%
   group_by(type, category) %>%
@@ -65,6 +66,38 @@ plot_ly(
     )
   )
 ```
+
+
+## Errors vs Warnings
+
+```{r errorswarnings}
+
+flag_type <- flags_all %>%
+  group_by(type) %>%
+  summarise(Flags = n()) %>%
+  ungroup() %>% 
+  arrange(desc(Flags)) 
+
+plot_ly(
+  flag_categories %>%
+    arrange(desc(NumberErrors)),
+  x = ~ reorder(type, desc(NumberErrors)),
+  y = ~ NumberErrors,
+  type = 'bar',
+  name = ~ category,
+  color = ~ category,
+  colors = 'Blues'
+) %>%
+  layout(
+    title = 'Errors and Warnings',
+    showlegend = FALSE,
+    xaxis = list(title = ''),
+    yaxis = list(title = 'Count'),
+    barmode = 'stack'
+  )
+
+```
+
 
 ## Categories Detail
 

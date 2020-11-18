@@ -12,6 +12,8 @@
 #GNU Affero General Public License for more details at 
 #<https://www.gnu.org/licenses/>.
 
+# Distribution of FAM to IND beds vs HH w/ multiple clients and Singles served
+
 library(tidyverse)
 library(lubridate)
 library(HMIS)
@@ -19,10 +21,9 @@ library(HMIS)
 ReportStart <- "10012018"
 ReportEnd <- "09302020"
 
-# bed utilization down to the hh type granularity, yay
-
 Inventory <- read_csv("data/Inventory.csv")
 Enrollment <- read_csv("data/Enrollment.csv")
+Exit <- read_csv("data/Exit.csv")
 
 smallInventory <- Inventory %>%
   filter(beds_available_between(., ReportStart, ReportEnd)) %>%
@@ -44,6 +45,7 @@ hhtypes <- spread(x, HouseholdType, BedInventory) %>%
            (HouseholdBeds + IndividualBeds))
 
 smallEnrollment <- Enrollment %>%
+  left_join(Exit[c("EnrollmentID", "ExitDate")], by = "EnrollmentID") %>%
   filter(served_between(., ReportStart, ReportEnd)) %>%
   select(ProjectID, HouseholdID) %>%
   mutate(HouseholdType = case_when(

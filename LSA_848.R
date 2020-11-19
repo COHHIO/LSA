@@ -46,4 +46,14 @@ flag848 <- flags_all %>%
   mutate(value_16 = as.numeric(value_16)) %>%
   select("ProjectID" = value_14, "ProjectName" = value_18, "Enrollments" = value_16)
 
-write_csv(flag848, "outputs/missingCoClocation.csv")
+# The ProjectIDs in the flag file seem off somehow. Trying another way:
+
+enrollments <- read_csv("data/Enrollment.csv")
+enrollmentcoc <- read_csv("data/EnrollmentCoC.csv")
+
+missing_in_export <- enrollmentcoc %>%
+  filter(is.na(CoCCode) & ProjectID != 1695) %>%
+  select(PersonalID, EnrollmentID, ProjectID) %>%
+  left_join(enrollments[c("EnrollmentID", "EntryDate")], by = "EnrollmentID")
+
+write_csv(missing_in_export, "outputs/missingCoClocation.csv")

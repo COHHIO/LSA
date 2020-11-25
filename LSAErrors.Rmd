@@ -25,6 +25,26 @@ Both years together, all CoC flags
 
 ```{r categories_plot}
 
+coc_2018 <- read_xlsx(
+  "data/errors_warnings_1_2018.xlsx",
+  sheet = 2,
+  range = "A1",
+  col_names = "CoC"
+) %>%
+  pull(CoC)
+
+coc_2019 <- read_xlsx(
+  "data/errors_warnings_1_2019.xlsx",
+  sheet = 2,
+  range = "A1",
+  col_names = "CoC"
+) %>%
+  pull(CoC)
+
+coc <- if_else(coc_2018 == coc_2019,
+               coc_2018,
+               "Mismatching CoCs")
+
 flags_2018 <- read_xlsx(
   "data/errors_warnings_1_2018.xlsx",
   sheet = 4,

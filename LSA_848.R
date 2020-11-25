@@ -23,6 +23,14 @@ library(HMIS)
 ReportStart <- "10012018"
 ReportEnd <- "09302020"
 
+coc <- read_xlsx(
+  "data/errors_warnings_1_2019.xlsx",
+  sheet = 2,
+  range = "A1",
+  col_names = "CoC"
+) %>%
+  pull(CoC)
+
 flags_2018 <- read_xlsx(
   "data/errors_warnings_1_2018.xlsx",
   sheet = 4,
@@ -48,11 +56,19 @@ flag848 <- flags_all %>%
 
 # The ProjectIDs in the flag file seem off somehow. Trying another way:
 
+mahoning_projects <-
+  c(696:697, 1327:1328, 1330:1331, 1392, 1638:1641, 1704, 1738, 2103, 2105,
+    2110, 2322:2336, 2338:2360, 2362:2385)
+
 enrollments <- read_csv("data/Enrollment.csv")
 enrollmentcoc <- read_csv("data/EnrollmentCoC.csv")
 
 missing_in_export <- enrollmentcoc %>%
-  filter(is.na(CoCCode) & ProjectID != 1695) %>%
+  filter(is.na(CoCCode) & ProjectID != 1695 &
+           (coc == "OH-507 Ohio Balance of State CoC" &
+             !ProjectID %in% c(mahoning_projects)) |
+           (coc == "OH-504 Youngstown/Mahoning County CoC" &
+              ProjectID %in% c(mahoning_projects))) %>%
   select(PersonalID, EnrollmentID, ProjectID) %>%
   left_join(enrollments[c("EnrollmentID", "EntryDate")], by = "EnrollmentID")
 

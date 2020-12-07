@@ -25,52 +25,87 @@ Both years together, all CoC flags
 
 ```{r categories_plot}
 
-coc_2018 <- read_xlsx(
-  "data/errors_warnings_1_2018.xlsx",
-  sheet = 2,
-  range = "A1",
-  col_names = "CoC"
-) %>%
-  pull(CoC)
+coc_check <- function(coc, year) {
+  coc_name <- read_xlsx(
+    paste0("data/errors_warnings_", year, "_", coc, ".xlsx"),
+    sheet = 2,
+    range = "A1",
+    col_names = "CoC"
+  ) %>%
+    pull(CoC)
+  
+  if_else(
+    (coc == "bos" & coc_name == "OH-507 Ohio Balance of State CoC") |
+      (coc == "mah" & coc_name == "OH-504 Youngstown/Mahoning County CoC"),
+  "Correct CoC",
+  "File named incorrectly"
+  )
+}
 
-coc_2019 <- read_xlsx(
-  "data/errors_warnings_1_2019.xlsx",
-  sheet = 2,
-  range = "A1",
-  col_names = "CoC"
-) %>%
-  pull(CoC)
+coc_check("bos", 2018)
+coc_check("bos", 2019)
+coc_check("mah", 2018)
+coc_check("mah", 2019)
 
-coc <- if_else(coc_2018 == coc_2019,
-               coc_2018,
-               "Mismatching CoCs")
-
-flags_2018 <- read_xlsx(
-  "data/errors_warnings_1_2018.xlsx",
+flags_2018_bos <- read_xlsx(
+  "data/errors_warnings_2018_bos.xlsx",
   sheet = 4,
   skip = 4,
   col_types = "text"
 )
 
-flags_2019 <- read_xlsx(
-  "data/errors_warnings_1_2019.xlsx",
+flags_2019_bos <- read_xlsx(
+  "data/errors_warnings_2019_bos.xlsx",
   sheet = 4,
   skip = 4,
   col_types = "text"
 )
 
-flags_all <- rbind(flags_2018, flags_2019) %>% 
-  clean_names() %>% unique() %>%
+flags_2018_mah <- read_xlsx(
+  "data/errors_warnings_2018_mah.xlsx",
+  sheet = 4,
+  skip = 4,
+  col_types = "text"
+)
+
+flags_2019_mah <- read_xlsx(
+  "data/errors_warnings_2019_mah.xlsx",
+  sheet = 4,
+  skip = 4,
+  col_types = "text"
+)
+
+flags_bos <-
+  rbind(flags_2018_bos,
+        flags_2019_bos) %>% 
+  clean_names() %>% 
+  unique() %>%
   filter(!is.na(id_number))
 
+flags_mah <-
+  rbind(flags_2018_mah,
+        flags_2019_mah) %>% 
+  clean_names() %>% 
+  unique() %>%
+  filter(!is.na(id_number))
+
+flags_all <-
+  rbind(flags_mah,
+        flags_bos) %>% 
+  clean_names() %>% 
+  unique() %>%
+  filter(!is.na(id_number)) %>%
+  mutate(coc = substr(internal, 1, 6))
+
 flag_categories <- flags_all %>%
-  group_by(type, category) %>%
+  group_by(type, category, coc) %>%
   summarise(NumberErrors = n()) %>%
   ungroup() %>% 
   arrange(desc(NumberErrors)) 
 
-plot_ly(
+bos_categories <- plot_ly(
   flag_categories %>%
+    filter(coc == "OH-507") %>%
     arrange(desc(NumberErrors)) %>%
     head(8L),
   x = ~ reorder(category, desc(NumberErrors)),
@@ -85,6 +120,29 @@ plot_ly(
       title = ""
     )
   )
+
+mah_categories <- plot_ly(
+  flag_categories %>%
+    filter(coc == "OH-504") %>%
+    arrange(desc(NumberErrors)) %>%
+    head(8L),
+  x = ~ reorder(category, desc(NumberErrors)),
+  y = ~ NumberErrors,
+  type = 'bar',
+  color = ~ category
+) %>%
+  layout(
+    title = "LSA Categories",
+    showlegend = FALSE,
+    xaxis =  list(
+      title = ""
+    )
+  )
+
+bos_categories
+
+mah_categories
+
 ```
 
 
@@ -141,4 +199,51 @@ gt(toptenflagtypes)
 
 ```
 
+## Utilization
+
+```{r}
+utilization <- flags_bos %>%
+  filter(category == "Utilization") %>%
+  group_by(description_7) %>%
+  summarise(warnings = n())
+
+utilization_project_ids <- flags_bos %>%
+  filter(category == "Utilization" & description_13 == "HMIS Project ID") %>%
+  group_by(description_7, value_14, value_18) %>%
+  summarise(warnings = n())
+
+```
+
+# Errors
+
+```{r}
+
+errors_bos <- flags_bos %>%
+  filter(type == "Error") %>%
+  group_by(category) %>%
+  summarise(NumberErrors = n()) %>%
+  ungroup() %>% 
+  arrange(desc(NumberErrors)) 
+
+each_error_bos <- flags_bos %>%
+  filter(type == "Error")
+
+bos_errors <- plot_ly(
+  errors_bos %>%
+    arrange(desc(NumberErrors)) %>%
+    head(8L),
+  x = ~ reorder(category, desc(NumberErrors)),
+  y = ~ NumberErrors,
+  type = 'bar',
+  color = ~ category
+) %>%
+  layout(
+    title = "LSA Categories",
+    showlegend = FALSE,
+    xaxis =  list(
+      title = ""
+    )
+  )
+
+```
 

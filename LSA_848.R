@@ -24,7 +24,7 @@ ReportStart <- "10012018"
 ReportEnd <- "09302020"
 
 coc <- read_xlsx(
-  "data/errors_warnings_1_2019.xlsx",
+  "data/errors_warnings_2019_bos.xlsx",
   sheet = 2,
   range = "A1",
   col_names = "CoC"
@@ -32,14 +32,14 @@ coc <- read_xlsx(
   pull(CoC)
 
 flags_2018 <- read_xlsx(
-  "data/errors_warnings_1_2018.xlsx",
+  "data/errors_warnings_2018_bos.xlsx",
   sheet = 4,
   skip = 4,
   col_types = "text"
 )
 
 flags_2019 <- read_xlsx(
-  "data/errors_warnings_1_2019.xlsx",
+  "data/errors_warnings_2019_bos.xlsx",
   sheet = 4,
   skip = 4,
   col_types = "text"

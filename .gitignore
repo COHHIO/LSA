@@ -3,6 +3,6 @@
 .RData
 .Ruserdata
 data/
-*.html
 outputs/
-projectids.csv
+*.html
+*.csv

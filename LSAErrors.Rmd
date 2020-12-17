@@ -114,7 +114,7 @@ bos_categories <- plot_ly(
   color = ~ category
 ) %>%
   layout(
-    title = "LSA Categories",
+    title = "LSA Categories BoS",
     showlegend = FALSE,
     xaxis =  list(
       title = ""
@@ -132,7 +132,7 @@ mah_categories <- plot_ly(
   color = ~ category
 ) %>%
   layout(
-    title = "LSA Categories",
+    title = "LSA Categories Mahoning",
     showlegend = FALSE,
     xaxis =  list(
       title = ""
@@ -238,12 +238,44 @@ bos_errors <- plot_ly(
   color = ~ category
 ) %>%
   layout(
-    title = "LSA Categories",
+    title = "BoS Errors",
     showlegend = FALSE,
     xaxis =  list(
       title = ""
     )
   )
+
+bos_errors
+
+
+errors_mah <- flags_mah %>%
+  filter(type == "Error") %>%
+  group_by(category) %>%
+  summarise(NumberErrors = n()) %>%
+  ungroup() %>% 
+  arrange(desc(NumberErrors)) 
+
+each_error_mah <- flags_mah %>%
+  filter(type == "Error")
+
+mah_errors <- plot_ly(
+  errors_mah %>%
+    arrange(desc(NumberErrors)) %>%
+    head(8L),
+  x = ~ reorder(category, desc(NumberErrors)),
+  y = ~ NumberErrors,
+  type = 'bar',
+  color = ~ category
+) %>%
+  layout(
+    title = "Mahoning Errors",
+    showlegend = FALSE,
+    xaxis =  list(
+      title = ""
+    )
+  )
+
+mah_errors
 
 ```
 

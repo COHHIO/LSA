@@ -64,12 +64,15 @@ enrollments <- read_csv("data/Enrollment.csv")
 enrollmentcoc <- read_csv("data/EnrollmentCoC.csv")
 
 missing_in_export <- enrollmentcoc %>%
-  filter(is.na(CoCCode) & ProjectID != 1695 &
+  filter(is.na(CoCCode) & 
+           ProjectID != 1695 &
+           DataCollectionStage == 1 &
            (coc == "OH-507 Ohio Balance of State CoC" &
              !ProjectID %in% c(mahoning_projects)) |
            (coc == "OH-504 Youngstown/Mahoning County CoC" &
               ProjectID %in% c(mahoning_projects))) %>%
   select(PersonalID, EnrollmentID, ProjectID) %>%
-  left_join(enrollments[c("EnrollmentID", "EntryDate")], by = "EnrollmentID")
+  left_join(enrollments[c("EnrollmentID", "EntryDate")], by = "EnrollmentID") %>%
+  filter(ymd(EntryDate) < ymd("20201001"))
 
 write_csv(missing_in_export, "outputs/missingCoClocation.csv")

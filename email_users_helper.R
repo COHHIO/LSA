@@ -22,12 +22,19 @@
 library(tidyverse)
 library(readxl)
 
-issue <- "Flag 967: served only 1 hh in LSA1 and that hh didn't move in"
+issue <- "Flag 967: served clients but none of them moved in in LSA2"
 
 # What group of providers has the issue -----------------------------------
 
 providers_in_question <- c(
-  1671, 1890, 1904, 1922, 2051
+  1666,
+  2136,
+  2207,
+  2214,
+  2229,
+  2260,
+  721
+  
 )
 
 # Grabbing all users associated with these Provider IDs -------------------
@@ -38,18 +45,19 @@ users <- read_xlsx("data/RMisc2.xlsx",
                             sheet = 15,
                             range = cell_cols("B:E")) 
 
-Project <- read_csv("data/Project.csv")
+Project <- read_xlsx("data/RMisc2.xlsx",
+                     sheet = 3)
 
 providers <- read_xlsx("data/RMisc2.xlsx",
                        sheet = 16,
                        range = cell_cols("B:D")) %>%
   filter(ProjectID %in% providers_in_question) %>%
-  left_join(Project[c("ProjectID", "ProjectName", "ProjectType")], by = "ProjectID")
+  left_join(Project[c("ProjectID", "ProjectName")], by = "ProjectID")
 
 associated_users <- providers %>%
   left_join(users, by = c("EDAGroup" = "EDAGroupName")) %>%
   mutate(Issue = issue) %>%
-  select(ProjectID, ProjectName, ProjectType, UserName, UserEmail, Issue) %>%
+  select(ProjectID, ProjectName, UserName, UserEmail, Issue) %>%
   filter(!is.na(UserName)) %>%
   unique()
 

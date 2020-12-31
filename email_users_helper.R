@@ -32,8 +32,7 @@ providers_in_question <- c(
 
 # Grabbing all users associated with these Provider IDs -------------------
 
-# the EDA Group ID on sheet 15 is questionable and doesn't align with sheet 16
-# i put in a ticket about it with ws
+# can't join in EDAGroupID because the IDs out of ART are wrong
 
 users <- read_xlsx("data/RMisc2.xlsx",
                             sheet = 15,

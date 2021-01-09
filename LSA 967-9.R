@@ -21,10 +21,11 @@ library(janitor)
 library(HMIS)
 library(scales)
 
-ReportStart <- "10012019"
-ReportEnd <- "09302020"
+ReportStart <- "10012018"
+ReportEnd <- "09302019"
 
 Enrollment <- read_csv("data/Enrollment.csv")
+Exit <- read_csv("data/Exit.csv")
 Project <- read_csv("data/Project.csv")
 Inventory <- read_csv("data/Inventory.csv")
 Funders <- read_csv("data/Funder.csv")
@@ -36,87 +37,25 @@ household_type_in_question <- 3
 
 # Paste in Project IDs
 projects_in_question <- c(
-  1003,
-  1010,
-  1110,
-  1579,
-  1666,
-  167,
-  1671,
   1676,
+  172,
   1766,
+  1774,
   1785,
-  1856,
-  1857,
+  1868,
   1879,
   1880,
-  1907,
-  1921,
-  2081,
-  2082,
-  2129,
-  2161,
-  2162,
-  2167,
-  2168,
-  2170,
-  2174,
-  2178,
-  2186,
-  2190,
-  2193,
-  2195,
-  2198,
-  2200,
-  2202,
-  2203,
-  2205,
-  2209,
-  2212,
-  2214,
-  2216,
-  2217,
-  2220,
-  2221,
-  2229,
-  2231,
-  2233,
-  2234,
-  2237,
-  2239,
-  2244,
-  2246,
-  2248,
-  2250,
-  2255,
-  2256,
-  2258,
-  2260,
-  2262,
-  2264,
-  2266,
-  2268,
-  2270,
-  2271,
-  2273,
-  2277,
-  2279,
-  2280,
-  2286,
-  2289,
-  2291,
-  2293,
-  2297,
-  2298,
-  2299,
-  2310,
-  2410,
+  1889,
+  1890,
+  1904,
+  1906,
+  1922,
+  2038,
+  2039,
+  301,
   422,
   426,
-  738,
-  752,
-  917,
-  988
+  752
 )
 
 relevant_hhtype_inventories <- Project %>%
@@ -136,11 +75,21 @@ relevant_inventories <- Project %>%
 created_in_response_to_covid <- relevant_hhtype_inventories %>%
   filter(ymd(OperatingStartDate) >= mdy("04012020"))
 
-just_didnt_serve_hhtype <- relevant_inventories %>%
+beds <- relevant_inventories %>%
   pivot_wider(names_from = HouseholdType,
               values_from = BedInventory) %>%
-  rename("AC" = `3`, "AO" = `1`) %>%
-  mutate(
-    PercentAO = percent(AO / (AO + AC))
-  )
-  
+  rename("AC" = `3`, "AO" = `1`)
+
+clients_served <- Enrollment %>%
+  left_join(Exit, by = "EnrollmentID") %>%
+  filter(ProjectID %in% c(projects_in_question) &
+           served_between(., ReportStart, ReportEnd)) %>%
+  mutate(HH_or_Single = if_else(str_detect(HouseholdID, "s_"), "singles", "households")) %>%
+  group_by(ProjectID, HH_or_Single) %>%
+  summarise(Served = n()) %>%
+  ungroup() %>%
+  pivot_wider(names_from = HH_or_Single,
+              values_from = Served)
+
+all_together <- beds %>%
+  left_join(clients_served, by = "ProjectID")

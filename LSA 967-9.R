@@ -24,16 +24,12 @@ library(scales)
 ReportStart <- "10012018"
 ReportEnd <- "09302019"
 
-Enrollment <- read_csv("data/Enrollment.csv")
-Exit <- read_csv("data/Exit.csv")
-Project <- read_csv("data/Project.csv")
-Inventory <- read_csv("data/Inventory.csv")
-Funders <- read_csv("data/Funder.csv")
+load("data/COHHIOHMIS.RData")
 
 # Enter a 1 for AO, 3 for AC, 4 for CO, or "all" if the flag is complaining
 # more generally about zero clients
 
-household_type_in_question <- 3
+household_type_in_question <- 4
 
 # Paste in Project IDs
 projects_in_question <- c(
@@ -59,7 +55,7 @@ projects_in_question <- c(
 )
 
 relevant_hhtype_inventories <- Project %>%
-  filter(ProjectID %in% projects_in_question) %>%
+  # filter(ProjectID %in% projects_in_question) %>%
   left_join(Inventory, by = "ProjectID") %>%
   filter((HouseholdType == household_type_in_question |
             household_type_in_question == "all") &
@@ -67,7 +63,7 @@ relevant_hhtype_inventories <- Project %>%
   select(ProjectID, ProjectName, BedInventory, HouseholdType, OperatingStartDate)
 
 relevant_inventories <- Project %>%
-  filter(ProjectID %in% projects_in_question) %>%
+  # filter(ProjectID %in% projects_in_question) %>%
   left_join(Inventory, by = "ProjectID") %>%
   filter(beds_available_between(., ReportStart, ReportEnd)) %>%
   select(ProjectID, ProjectName, BedInventory, HouseholdType)
@@ -78,13 +74,12 @@ created_in_response_to_covid <- relevant_hhtype_inventories %>%
 beds <- relevant_inventories %>%
   pivot_wider(names_from = HouseholdType,
               values_from = BedInventory) %>%
-  rename("AC" = `3`, "AO" = `1`)
+  rename("AC" = `3`, "AO" = `1`, "CO" = `4`)
 
 clients_served <- Enrollment %>%
-  left_join(Exit, by = "EnrollmentID") %>%
-  filter(ProjectID %in% c(projects_in_question) &
-           served_between(., ReportStart, ReportEnd)) %>%
-  mutate(HH_or_Single = if_else(str_detect(HouseholdID, "s_"), "singles", "households")) %>%
+  filter(#ProjectID %in% c(projects_in_question) &
+           stayed_between(., ReportStart, ReportEnd)) %>%
+  # mutate(HH_or_Single = if_else(str_detect(HouseholdID, "s_"), "singles", "households")) %>%
   group_by(ProjectID, HH_or_Single) %>%
   summarise(Served = n()) %>%
   ungroup() %>%

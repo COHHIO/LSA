@@ -76,3 +76,12 @@ missing_in_export <- enrollmentcoc %>%
   filter(ymd(EntryDate) < ymd("20201001"))
 
 write_csv(missing_in_export, "outputs/missingCoClocation.csv")
+
+missing_rel_to_hoh <- Enrollment %>%
+  filter(RelationshipToHoH == 99 &
+           ProjectType %in% c(1, 2, 3, 8, 9, 13) &
+           served_between(., ReportStart, ReportEnd))
+
+write_csv(missing_rel_to_hoh, "outputs/missingreltohoh.csv")
+
+

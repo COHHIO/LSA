@@ -18,19 +18,25 @@
 library(tidyverse)
 library(lubridate)
 
-Enrollment <- read_csv("data/Enrollment.csv")
-Exit <- read_csv("data/Exit.csv")
-Project <- read_csv("data/Project.csv")
+# Enrollment <- read_csv("data/Enrollment.csv")
+# Exit <- read_csv("data/Exit.csv")
+# Project <- read_csv("data/Project.csv")
+
+current_clients <- Enrollment %>%
+  filter(is.na(ExitDate)) %>%
+  group_by(ProjectID, ProjectType) %>%
+  summarise(current = n())
 
 Op_Starts <- Project %>% 
   filter(ProjectType %in% c(1, 2, 3, 8, 9, 13)) %>%
   select(ProjectID, ProjectName, OperatingStartDate, ProjectType)
 
-First_Entry <- Enrollment %>%
-  left_join(Op_Starts, by = "ProjectID") %>%
+First_Entry <- Op_Starts %>%
+  left_join(Enrollment[c("ProjectID", "HouseholdID", "EntryDate", "MoveInDateAdjust")], by = "ProjectID") %>%
   filter(ProjectType %in% c(1, 2, 3, 8, 9, 13)) %>%
   group_by(ProjectID, ProjectType) %>%
-  summarise(FirstEntry = min(ymd(EntryDate)))
+  summarise(FirstEntry = min(ymd(EntryDate)),
+            FirstMoveIn = min(ymd(MoveInDateAdjust)))
 
 should_not_be_in_lsa1 <- First_Entry %>%
   left_join(Op_Starts, by = c("ProjectID", "ProjectType")) %>%
@@ -41,5 +47,18 @@ should_not_be_in_lsa2 <- First_Entry %>%
   left_join(Op_Starts, by = c("ProjectID", "ProjectType")) %>%
   filter(FirstEntry >= mdy("10012020") & 
            OperatingStartDate < mdy("10012020"))
+
+Op_Ends <- Project %>% 
+  filter(ProjectType %in% c(1, 2, 3, 8, 9, 13)) %>%
+  select(ProjectID, ProjectName, OperatingEndDate, ProjectType)
+
+Last_Exit <- Op_Ends %>%
+  left_join(Enrollment[c("ProjectID", "HouseholdID", "ExitDate")], by = "ProjectID") %>%
+  filter(ProjectType %in% c(1, 2, 3, 8, 9, 13) & !is.na(ExitDate)) %>%
+  group_by(ProjectID, ProjectType, OperatingEndDate) %>%
+  summarise(LastExit = max(ymd(ExitDate))) %>%
+  left_join(current_clients, by = c("ProjectID", "ProjectType"))
+
+
 
 

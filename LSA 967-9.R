@@ -33,28 +33,7 @@ household_type_in_question <- 3
 
 # Paste in Project IDs
 projects_in_question <- c(
-  1110,
-  1579,
-  167,
-  1671,
-  1766,
-  1785,
-  1880,
-  1907,
-  2101,
-  2129,
-  2168,
-  2170,
-  2214,
-  2229,
-  2260,
-  2271,
-  422,
-  426,
-  752,
-  917,
-  988
-
+  2170
 )
 
 relevant_hhtype_inventories <- Project %>%
@@ -77,7 +56,7 @@ created_in_response_to_covid <- relevant_hhtype_inventories %>%
 beds <- relevant_inventories %>%
   pivot_wider(names_from = HouseholdType,
               values_from = BedInventory) %>%
-  rename("AC" = `3`, "AO" = `1`)
+  rename("AC" = `3`)
 
 clients_served <- Enrollment %>%
   filter(ProjectID %in% c(projects_in_question) &

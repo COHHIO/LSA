@@ -63,7 +63,7 @@ flags_2019_bos <- read_xlsx(
 
 flags_2018_mah <- read_xlsx(
   "data/errors_warnings_2018_mah.xlsx",
-  sheet = 4,
+  sheet = 3,
   skip = 4,
   col_types = "text"
 )

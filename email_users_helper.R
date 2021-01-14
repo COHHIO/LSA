@@ -22,18 +22,12 @@
 library(tidyverse)
 library(readxl)
 
-issue <- "Flag 967: served clients but none of them moved in in LSA2"
+issue <- "did i email you about movein dates and exit dates?"
 
 # What group of providers has the issue -----------------------------------
 
 providers_in_question <- c(
-  1666,
-  2136,
-  2207,
-  2214,
-  2229,
-  2260,
-  721
+2260
   
 )
 

@@ -18,9 +18,7 @@
 library(tidyverse)
 library(lubridate)
 
-# Enrollment <- read_csv("data/Enrollment.csv")
-# Exit <- read_csv("data/Exit.csv")
-# Project <- read_csv("data/Project.csv")
+load("data/COHHIOHMIS.RData")
 
 current_clients <- Enrollment %>%
   filter(is.na(ExitDate)) %>%
